@@ -28,6 +28,9 @@ public class Video {
     @Column(name = "filters")
     private String filters;
 
+    @Column(name = "breakdown_id")
+    private int breakdownId;
+
 
     public String getTitle() {
         return title;
@@ -83,5 +86,13 @@ public class Video {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getBreakdownId() {
+        return breakdownId;
+    }
+
+    public void setBreakdownId(int breakdownId) {
+        this.breakdownId = breakdownId;
     }
 }

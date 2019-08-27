@@ -56,7 +56,7 @@ public class VideoController {
             Iterator<Video> it = allVideos.iterator();
             while (it.hasNext()) {
                 Video video = it.next();
-                if (!searchFilter(video.getFilters(), filter)) {
+                if (!new FilterUtil().searchFilter(video.getFilters(), filter)) {
                     it.remove();
                 }
             }
@@ -66,7 +66,7 @@ public class VideoController {
             Iterator<Video> it = allVideos.iterator();
             while (it.hasNext()) {
                 Video video = it.next();
-                if (!searchNameOrHash(name, video.getTitle(), video.getHashtags())) {
+                if (!new FilterUtil().searchNameOrHash(name, video.getTitle(), video.getHashtags())) {
                     it.remove();
                 }
             }
@@ -83,7 +83,8 @@ public class VideoController {
     public Video addVideo(@RequestHeader("Authorization") String token, @RequestParam int person_id,
                                     @RequestParam String title, @RequestParam String image,
                                     @RequestParam String video, @RequestParam String description,
-                                    @RequestParam String hashtags, @RequestParam String filters) {
+                                    @RequestParam String hashtags, @RequestParam String filters,
+                                    @RequestParam int breakdownId) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
@@ -97,6 +98,7 @@ public class VideoController {
                     newVideo.setDescription(description);
                     newVideo.setHashtags(hashtags);
                     newVideo.setFilters(filters);
+                    newVideo.setBreakdownId(breakdownId);
                     videoRepository.save(newVideo);
                     return getVideo(newVideo.getId());
                 }else {
@@ -126,7 +128,8 @@ public class VideoController {
     public Video updateVideo(@RequestHeader("Authorization") String token, @RequestParam int person_id, @PathVariable(value = "id") int id,
                                     @RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "") String image,
                                     @RequestParam(defaultValue = "") String video, @RequestParam(defaultValue = "") String description,
-                                    @RequestParam(defaultValue = "") String hashtags, @RequestParam(defaultValue = "") String filters) {
+                                    @RequestParam(defaultValue = "") String hashtags, @RequestParam(defaultValue = "") String filters,
+                                    @RequestParam(defaultValue = "9990999") int breakdownId) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
@@ -150,6 +153,9 @@ public class VideoController {
                     }
                     if(filters.trim().length() > 0){
                         videoUpdate.setFilters(filters);
+                    }
+                    if(breakdownId != 9990999){
+                        videoUpdate.setBreakdownId(breakdownId);
                     }
                     videoRepository.save(videoUpdate);
                     return videoRepository.findById(id);
@@ -201,7 +207,7 @@ public class VideoController {
         if(title.trim().length() > 0){
             List<VideoFilter> findedFilters = new ArrayList<>();
             for(VideoFilter filterItem : filtersAll){
-                if(FilterUtil.searchName(filterItem.getTitle(), title)){
+                if(new FilterUtil().searchName(filterItem.getTitle(), title)){
                     findedFilters.add(filterItem);
                 }
             }
@@ -356,39 +362,6 @@ public class VideoController {
         }else {
             throw new NotFoundException(Constants.ERROR_ACCESS_DENIED);
         }
-    }
-
-
-
-
-    //ПОИСК ПО ИМЕНИ И ХЕШТЕГУ
-    public boolean searchNameOrHash(String searchData, String name, String hashtags) {
-        if(!name.replaceAll(searchData.trim(),"_").equals(name)) {
-            return true;
-        }else {
-            hashtags = hashtags.replaceAll("\\s+","");
-            List<String> hashtagsList = Arrays.asList(hashtags.split("#"));
-            for (String item : hashtagsList){
-                if(searchData.trim().equals(item)){
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
-    }
-
-
-    //ПОИСК ПО ФИЛЬТРАМ
-    public boolean searchFilter(String search, String what) {
-        List<String> filtersList = Arrays.asList(search.split(","));
-        for (String item : filtersList){
-            if(what.trim().equals(item.trim())){
-                return true;
-            }
-        }
-        return false;
     }
 
 }

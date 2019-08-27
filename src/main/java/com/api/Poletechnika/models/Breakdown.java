@@ -3,6 +3,8 @@ package com.api.Poletechnika.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.lang.annotation.Native;
+import java.util.List;
 
 @Entity
 @Table(name = "breakdowns")
@@ -33,6 +35,12 @@ public class Breakdown {
 
     @Column(name = "manual")
     private String manual;
+
+    @Transient
+    private List<Video> videos = null;
+
+    @Column(name = "filters")
+    private String filters;
 
     public int getId() {
         return id;
@@ -96,5 +104,22 @@ public class Breakdown {
 
     public void setManual(String manual) {
         this.manual = manual;
+    }
+
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
+    }
+
+    public String getFilters() {
+        return filters;
+    }
+
+    public void setFilters(String filters) {
+        this.filters = filters;
     }
 }

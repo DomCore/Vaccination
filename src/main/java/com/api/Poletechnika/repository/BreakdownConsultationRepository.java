@@ -11,7 +11,7 @@ public interface BreakdownConsultationRepository extends CrudRepository<Breakdow
 
     BreakdownConsultation findById(int id);
 
-    Iterable<BreakdownConsultation> findAllByBreakdown_id(int id);
+    Iterable<BreakdownConsultation> findAllByBreakdownId(int id);
 
     @Transactional
     void deleteById(int id);

@@ -7,8 +7,14 @@ import com.api.Poletechnika.models.*;
 import com.api.Poletechnika.repository.*;
 import com.api.Poletechnika.utils.Constants;
 import com.api.Poletechnika.utils.DateUseUtil;
+import com.api.Poletechnika.utils.FilterUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/breakdowns")
@@ -25,21 +31,59 @@ public class BreakdownsController {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    VideoRepository videoRepository;
+
 
     //GET all breakdowns
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public Iterable<Breakdown> getBreakdowns() {
-        return breakdownRepository.findAll();
+    @RequestMapping(value = "", method = RequestMethod.GET)
+    public Iterable<Breakdown> getBreakdowns(@RequestParam(defaultValue = "") String code, @RequestParam(defaultValue = "") String carType,
+                                             @RequestParam(defaultValue = "") String carModel, @RequestParam(defaultValue = "") String breakType) {
+        List<String> enteredFilters = new ArrayList<>();
+        if(carType.trim().length() > 0){
+            enteredFilters.add(carType);
+        }
+        if(carModel.trim().length() > 0){
+            enteredFilters.add(carModel);
+        }
+        if(breakType.trim().length() > 0){
+            enteredFilters.add(breakType);
+        }
+
+        ArrayList<Breakdown> allBreakdowns = (ArrayList) breakdownRepository.findAll();
+        //Check filters
+        for(String filter: enteredFilters){
+            Iterator<Breakdown> it = allBreakdowns.iterator();
+            while (it.hasNext()) {
+                Breakdown breakdown = it.next();
+                if (!new FilterUtil().searchFilter(breakdown.getFilters(), filter)) {
+                    it.remove();
+                }
+            }
+        }
+        //Check like code
+        if(code.trim().length() > 0){
+            Iterator<Breakdown> it = allBreakdowns.iterator();
+            while (it.hasNext()) {
+                Breakdown breakdown = it.next();
+                if (!new FilterUtil().searchName(String.valueOf(breakdown.getCode()), code)) {
+                    it.remove();
+                }
+            }
+        }
+
+        return allBreakdowns;
     }
 
     //ADD BREAKDOWS
     //REQUEST FOR ADMIN-PANEL
     //ADMINISTRATION PERMISSION
-    @RequestMapping(value = "/", method = RequestMethod.POST)
+    @RequestMapping(value = "", method = RequestMethod.POST)
     public Breakdown addBreakdown(@RequestParam() int person_id, @RequestHeader("Authorization") String token,
                                   @RequestParam(defaultValue = "0") int code, @RequestParam(defaultValue = "0") int unit, @RequestParam(defaultValue = "") String title,
                                   @RequestParam(defaultValue = "") String image, @RequestParam(defaultValue = "0") int car_id,
-                                  @RequestParam(defaultValue = "") String description, @RequestParam(defaultValue = "") String manual) {
+                                  @RequestParam(defaultValue = "") String description, @RequestParam(defaultValue = "") String manual,
+                                  @RequestParam(defaultValue = "") String filters) {
 
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
@@ -55,6 +99,7 @@ public class BreakdownsController {
                     breakdown.setCar_id(car_id);
                     breakdown.setDescription(description);
                     breakdown.setManual(manual);
+                    breakdown.setFilters(filters);
                     breakdownRepository.save(breakdown);
                     return getBreakdownData(breakdown.getId());
                 }else {
@@ -71,9 +116,18 @@ public class BreakdownsController {
     //GET BREAKDOWN
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Breakdown getBreakdownData(@PathVariable(value = "id") int id) {
-        return breakdownRepository.findById(id);
+
+        Breakdown breakdown = breakdownRepository.findById(id);
+        if(breakdown != null){
+            List<Video> videos = videoRepository.findAllByBreakdownId(id);
+            if(videos != null){
+                breakdown.setVideos(videos);
+            }
+            return breakdown;
+        }else {
+            throw new NotFoundException(Constants.ERROR_DATA_NOT_FOUND);
+        }
     }
-//GET VIDEOS
 
 
     //UPDATE BREAKDOWN
@@ -83,7 +137,8 @@ public class BreakdownsController {
     public Breakdown addBreakdown(@RequestParam() int person_id, @RequestHeader("Authorization") String token, @PathVariable(value = "id") int id,
                                   @RequestParam(defaultValue = "0") int code, @RequestParam(defaultValue = "0") int unit, @RequestParam(defaultValue = "") String title,
                                   @RequestParam(defaultValue = "") String image, @RequestParam(defaultValue = "0") int car_id,
-                                  @RequestParam(defaultValue = "") String description, @RequestParam(defaultValue = "") String manual) {
+                                  @RequestParam(defaultValue = "") String description, @RequestParam(defaultValue = "") String manual,
+                                  @RequestParam(defaultValue = "") String filters) {
 
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
@@ -112,6 +167,9 @@ public class BreakdownsController {
                     }
                     if(manual.trim().length() > 0){
                         breakdownUpdate.setManual(manual);
+                    }
+                    if (filters.trim().length() > 0){
+                        breakdownUpdate.setFilters(filters);
                     }
                     breakdownRepository.save(breakdownUpdate);
                     return breakdownRepository.findById(id);
@@ -155,12 +213,12 @@ public class BreakdownsController {
         if(id == 0){
             return breakdownConsultationRepository.findAll();
         }else {
-            return breakdownConsultationRepository.findAllByBreakdown_id(id);
+            return breakdownConsultationRepository.findAllByBreakdownId(id);
         }
 
     }
 
-    //ADD BREAKDOWS
+    //ADD BREAKDOWN CONSULTATION
     //REQUEST FOR ADMIN-PANEL
     //ADMINISTRATION PERMISSION
     @RequestMapping(value = "/{id}/consultation", method = RequestMethod.POST)
@@ -174,8 +232,8 @@ public class BreakdownsController {
                 if(breakdownRepository.findById(id) != null){
                     if(message.trim().length() > 0){
                         BreakdownConsultation breakdownConsultation = new BreakdownConsultation();
-                        breakdownConsultation.setBreakdown_id(id);
-                        breakdownConsultation.setUser_id(user_id);
+                        breakdownConsultation.setBreakdownId(id);
+                        breakdownConsultation.setUserId(user_id);
                         breakdownConsultation.setDate(new DateUseUtil().getCurrentDate());
                         breakdownConsultation.setMessage(message);
                         breakdownConsultationRepository.save(breakdownConsultation);
@@ -207,7 +265,7 @@ public class BreakdownsController {
 
         BreakdownConsultation breakdownConsultation = breakdownConsultationRepository.findById(consultationId);
         if(breakdownConsultation != null){
-            User user = userRepository.findById(breakdownConsultation.getUser_id());
+            User user = userRepository.findById(breakdownConsultation.getUserId());
             if(user != null){
                 if(message.trim().length() > 0){
                     String userMail = user.getMail();
@@ -249,4 +307,7 @@ public class BreakdownsController {
             throw new NotFoundException(Constants.ERROR_ACCESS_DENIED);
         }
     }
+
+
+
 }

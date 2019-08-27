@@ -83,7 +83,7 @@ public class AgronomyController {
         if(title.trim().length() > 0){
             List<AgronomyWeather> findedWeather = new ArrayList<>();
             for(AgronomyWeather weatherItem : weatherAll){
-                if(FilterUtil.searchName(weatherItem.getTitle(), title)){
+                if(new FilterUtil().searchName(weatherItem.getTitle(), title)){
                     findedWeather.add(weatherItem);
                 }
             }
@@ -105,7 +105,7 @@ public class AgronomyController {
         if(title.trim().length() > 0){
             List<AgronomyMachineryModelShort> findedModels = new ArrayList<>();
             for(AgronomyMachineryModelShort modelItem : modelsAll){
-                if(FilterUtil.searchName(modelItem.getTitle(), title)){   //userItem.getName().equals(name)
+                if(new FilterUtil().searchName(modelItem.getTitle(), title)){   //userItem.getName().equals(name)
                     findedModels.add(modelItem);
                 }
             }
@@ -294,7 +294,7 @@ public class AgronomyController {
         if(title.trim().length() > 0){
             List<AgronomyEarthType> findedEarth = new ArrayList<>();
             for(AgronomyEarthType earthItem : earthAll){
-                if(FilterUtil.searchName(earthItem.getTitle(), title)){
+                if(new FilterUtil().searchName(earthItem.getTitle(), title)){
                     findedEarth.add(earthItem);
                 }
             }
@@ -397,7 +397,7 @@ public class AgronomyController {
         if(title.trim().length() > 0){
             List<AgronomyEarthRegion> findedRegions = new ArrayList<>();
             for(AgronomyEarthRegion regionItem : regionsAll){
-                if(FilterUtil.searchName(regionItem.getTitle(), title)){
+                if(new FilterUtil().searchName(regionItem.getTitle(), title)){
                     findedRegions.add(regionItem);
                 }
             }

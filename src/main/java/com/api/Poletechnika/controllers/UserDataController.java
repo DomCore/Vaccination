@@ -278,7 +278,7 @@ public class UserDataController {
                 if(calculationData.getInput_data() != null && calculationData.getInput_data().size() > 0){
                     int maxI = calculationData.getInput_data().size() >= 3 ? 3 : calculationData.getInput_data().size();
                     for(int i = 0; i < maxI; i++){
-                        description += calculationData.getInput_data().get(i).getValue() + " ";
+                        description += calculationData.getInput_data().get(i).getValue() + "   ";
                     }
                 }
 

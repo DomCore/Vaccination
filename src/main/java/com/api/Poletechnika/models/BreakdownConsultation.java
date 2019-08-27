@@ -3,7 +3,7 @@ package com.api.Poletechnika.models;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "breakdowns")
+@Table(name = "breakdowns_consultations")
 public class BreakdownConsultation {
 
     @Id
@@ -12,10 +12,10 @@ public class BreakdownConsultation {
 
 
     @Column(name = "breakdown_id")
-    private int breakdown_id;
+    private int breakdownId;
 
     @Column(name = "user_id")
-    private int user_id;
+    private int userId;
 
     @Column(name = "message")
     private String message;
@@ -32,23 +32,6 @@ public class BreakdownConsultation {
         this.id = id;
     }
 
-
-    public int getBreakdown_id() {
-        return breakdown_id;
-    }
-
-    public void setBreakdown_id(int breakdown_id) {
-        this.breakdown_id = breakdown_id;
-    }
-
-    public int getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
-    }
-
     public String getMessage() {
         return message;
     }
@@ -63,5 +46,21 @@ public class BreakdownConsultation {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public int getBreakdownId() {
+        return breakdownId;
+    }
+
+    public void setBreakdownId(int breakdownId) {
+        this.breakdownId = breakdownId;
     }
 }
