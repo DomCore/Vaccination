@@ -411,16 +411,15 @@ public class AgronomyController {
     //ADMINISTRATION PERMISSION
     @RequestMapping(value = "/conditions/earth/regions", method =  RequestMethod.POST)
     public AgronomyEarthRegion addEarthRegion(@RequestHeader("Authorization") String token, @RequestParam int person_id,
-                                                    @RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "") String value){
+                                                    @RequestParam(defaultValue = "") String title){
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
             if(userRepository.findById(person_id).getToken() != null && token.trim().length() > 0 && userRepository.findById(person_id).getToken().equals(token)){
-                if(title.trim().length() > 0 && value.trim().length() > 0){
+                if(title.trim().length() > 0 ){
                     //ADD NEW EART TYPE
                     AgronomyEarthRegion earthRegion = new AgronomyEarthRegion();
                     earthRegion.setTitle(title);
-                    earthRegion.setValue(value);
                     agronomyEarthRegionsRepository.save(earthRegion);
                     return getEarthRegionItem(earthRegion.getId());
                 }else {
@@ -444,8 +443,7 @@ public class AgronomyController {
     //ADMINISTRATION PERMISSION
     @RequestMapping(value = "/conditions/earth/regions/{id}", method =  RequestMethod.POST)
     public AgronomyEarthRegion updateEarthRegionItem(@RequestHeader("Authorization") String token, @RequestParam int person_id,
-                                              @PathVariable(value = "id") int id, @RequestParam(defaultValue = "") String title,
-                                              @RequestParam(defaultValue = "") String value) {
+                                              @PathVariable(value = "id") int id, @RequestParam(defaultValue = "") String title) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
@@ -456,9 +454,6 @@ public class AgronomyController {
                     //ADD NEW EART TYPE
                     if(title.trim().length() > 0){
                         agronomyEarthRegion.setTitle(title);
-                    }
-                    if(value.trim().length() > 0){
-                        agronomyEarthRegion.setValue(value);
                     }
                     agronomyEarthRegionsRepository.save(agronomyEarthRegion);
                     return agronomyEarthRegion;

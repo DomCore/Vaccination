@@ -13,9 +13,6 @@ public class AgronomyEarthRegion {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "value")
-    private String value;
-
 
     public int getId() {
         return id;
@@ -31,13 +28,5 @@ public class AgronomyEarthRegion {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
     }
 }
