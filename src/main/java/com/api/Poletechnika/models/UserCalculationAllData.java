@@ -15,7 +15,8 @@ public class UserCalculationAllData {
 
     private String title;
 
-    private List<CalculationAreaItem> area;
+    //private List<CalculationAreaItem> area;
+    private String area;
 
     private String description;
 
@@ -77,15 +78,6 @@ public class UserCalculationAllData {
         this.number = number;
     }
 
-    public List<CalculationAreaItem> getArea() {
-        return area;
-    }
-
-    public void setArea(List<CalculationAreaItem> area) {
-        this.area = area;
-    }
-
-
     public List<UserCalculationData> getInput_data() {
         return input_data;
     }
@@ -100,6 +92,14 @@ public class UserCalculationAllData {
 
     public void setOutput_data(List<UserCalculationData> output_data) {
         this.output_data = output_data;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
     }
 }
 

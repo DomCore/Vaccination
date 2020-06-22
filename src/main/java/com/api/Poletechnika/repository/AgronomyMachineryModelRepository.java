@@ -13,6 +13,8 @@ public interface AgronomyMachineryModelRepository extends CrudRepository<Agronom
     List<AgronomyMachineryModel> findAllByTypeId(String typeId);
     AgronomyMachineryModel findByTypeIdAndId(String typeId, int itemId);
 
+    AgronomyMachineryModel findById(int itemId);
+
     @Transactional
     void deleteAgronomyMachineryModelByTypeIdAndId(String typeId, int itemId);
 }

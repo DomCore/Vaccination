@@ -13,6 +13,13 @@ public interface BreakdownConsultationRepository extends CrudRepository<Breakdow
 
     Iterable<BreakdownConsultation> findAllByBreakdownId(int id);
 
+
+    Iterable<BreakdownConsultation> findAllByBreakdownIdAndIsNew(int id, int isNew);
+
+    Iterable<BreakdownConsultation> findAllByIsNew(int isNew);
+
+
+
     @Transactional
     void deleteById(int id);
 }

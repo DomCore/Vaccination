@@ -34,11 +34,17 @@ public class VideoController {
     @Autowired
     UserRepository userRepository;
 
+
+    @Autowired
+    AgronomyMachineryRepository agronomyMachineryRepository;
+
     //GET ALL VIDEOS
     @RequestMapping(value = "", method = RequestMethod.GET)
     public Iterable<Video> getVideos(@RequestParam(defaultValue = "") String name, @RequestParam(defaultValue = "") String carType,
                                      @RequestParam(defaultValue = "") String carModel, @RequestParam(defaultValue = "") String breakType) {
-        List<String> enteredFilters = new ArrayList<>();
+
+        //OLD FILTERS CODE
+        /*List<String> enteredFilters = new ArrayList<>();
         if(carType.trim().length() > 0){
             enteredFilters.add(carType);
         }
@@ -47,12 +53,45 @@ public class VideoController {
         }
         if(breakType.trim().length() > 0){
             enteredFilters.add(breakType);
-        }
+        }*/
 
         ArrayList<Video> allVideos = (ArrayList) videoRepository.findAll();
 
+        if(breakType.trim().length() > 0){
+            Iterator<Video> it = allVideos.iterator();
+            while (it.hasNext()) {
+                Video video = it.next();
+                if (!video.getBreakdownType().equals(breakType.trim())) {
+                    it.remove();
+                }
+            }
+        }
+
+        if(carType.trim().length() > 0){
+            Iterator<Video> it = allVideos.iterator();
+            while (it.hasNext()) {
+                Video video = it.next();
+                if (!video.getCarType().equals(carType.trim())) {
+                    it.remove();
+                }
+            }
+        }
+
+        if(carModel.trim().length() > 0){
+            Iterator<Video> it = allVideos.iterator();
+            while (it.hasNext()) {
+                Video video = it.next();
+                if (!video.getCarModel().equals(carModel.trim())) {
+                    it.remove();
+                }
+            }
+        }
+
+
         //Check filters
-        for(String filter: enteredFilters){
+
+        //OLD FILTERS CODE
+/*        for(String filter: enteredFilters){
             Iterator<Video> it = allVideos.iterator();
             while (it.hasNext()) {
                 Video video = it.next();
@@ -60,7 +99,8 @@ public class VideoController {
                     it.remove();
                 }
             }
-        }
+        }*/
+
         //Check name or hashtags
         if(name.trim().length() > 0){
             Iterator<Video> it = allVideos.iterator();
@@ -83,22 +123,61 @@ public class VideoController {
     public Video addVideo(@RequestHeader("Authorization") String token, @RequestParam int person_id,
                                     @RequestParam String title, @RequestParam String image,
                                     @RequestParam String video, @RequestParam String description,
-                                    @RequestParam String hashtags, @RequestParam String filters,
-                                    @RequestParam int breakdownId) {
+                                    @RequestParam String hashtags,
+                                    @RequestParam int breakdown_id, @RequestParam String breakdown_type_title,
+                                    @RequestParam String car_type_id, @RequestParam String car_model_id) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
             if(userRepository.findById(person_id).getToken() != null &&  token.trim().length() > 0 && userRepository.findById(person_id).getToken().equals(token)){
                 Video newVideo = new Video();
                 if(title.trim().length() > 0 && image.trim().length() > 0 && video.trim().length() > 0 && description.trim().length() > 0
-                && hashtags.trim().length() > 0 && filters.trim().length() > 0){
+                && breakdown_type_title.trim().length() > 0 ){
                     newVideo.setTitle(title);
                     newVideo.setImage(image);
                     newVideo.setVideo(video);
                     newVideo.setDescription(description);
                     newVideo.setHashtags(hashtags);
-                    newVideo.setFilters(filters);
-                    newVideo.setBreakdownId(breakdownId);
+//                    newVideo.setFilters(filters);
+                    newVideo.setBreakdownId(breakdown_id);
+
+                    //set breakdown type filter
+                    VideoFilter filterInDB = videoFiltersRepository.findByTitleAndType(breakdown_type_title.trim(), Constants.FILTER_TYPE_BREAKDONW_TYPE);
+                    if(filterInDB != null){
+                        newVideo.setBreakdownType(String.valueOf(filterInDB.getId()));
+                    }else {
+                        VideoFilter newFilter = new VideoFilter();
+                        newFilter.setTitle(breakdown_type_title);
+                        newFilter.setType(Constants.FILTER_TYPE_BREAKDONW_TYPE);
+                        videoFiltersRepository.save(newFilter);
+                        newVideo.setBreakdownType(String.valueOf(newFilter.getId()));
+                    }
+
+                    //set car type filter
+                    newVideo.setCarType(car_type_id);
+                    //Если нужна будет усложненная логика для вынесения типа в фильтр
+                    /*filterInDB = null;
+                    filterInDB = videoFiltersRepository.findByValueIdAndType(machinery_type_id, Constants.FILTER_TYPE_MACHINERY_TYPE);
+                    if(filterInDB != null){
+                        newVideo.setMachinery_type(String.valueOf(filterInDB.getId()));
+                    }else {
+                        AgronomyMachinery machineryType = agronomyMachineryRepository.findById(machinery_type_id);
+                        if(machineryType != null){
+                            VideoFilter newFilter = new VideoFilter();
+                            newFilter.setTitle(machineryType.getTitle());
+                            newFilter.setType(Constants.FILTER_TYPE_MACHINERY_TYPE);
+                            newFilter.setValueId(machineryType.getId());
+                            videoFiltersRepository.save(newFilter);
+                            newVideo.setMachinery_type(String.valueOf(newFilter.getId()));
+                        }else {
+                            throw new WrongDataException(Constants.ERROR_WRONG_DATA);
+                        }
+                    }*/
+
+                    //set car model filter
+                    newVideo.setCarModel(car_model_id);
+
+
                     videoRepository.save(newVideo);
                     return getVideo(newVideo.getId());
                 }else {
@@ -128,8 +207,9 @@ public class VideoController {
     public Video updateVideo(@RequestHeader("Authorization") String token, @RequestParam int person_id, @PathVariable(value = "id") int id,
                                     @RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "") String image,
                                     @RequestParam(defaultValue = "") String video, @RequestParam(defaultValue = "") String description,
-                                    @RequestParam(defaultValue = "") String hashtags, @RequestParam(defaultValue = "") String filters,
-                                    @RequestParam(defaultValue = "9990999") int breakdownId) {
+                                    @RequestParam(defaultValue = "000") String hashtags,  @RequestParam(defaultValue = "9990999") int breakdownId,
+                             @RequestParam(defaultValue = "") String breakdown_type_title,
+                             @RequestParam(defaultValue = "") String car_type_id, @RequestParam(defaultValue = "") String car_model_id) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
@@ -146,17 +226,37 @@ public class VideoController {
                         videoUpdate.setVideo(video);
                     }
                     if(description.trim().length() > 0){
-                        videoUpdate.setDescription(description);
+                        videoUpdate.setDescription(description.trim());
                     }
-                    if(hashtags.trim().length() > 0){
+                    if(!hashtags.equals("000")){
                         videoUpdate.setHashtags(hashtags);
-                    }
-                    if(filters.trim().length() > 0){
-                        videoUpdate.setFilters(filters);
                     }
                     if(breakdownId != 9990999){
                         videoUpdate.setBreakdownId(breakdownId);
                     }
+
+                    if(breakdown_type_title.trim().length() > 0){
+                        //set breakdown type filter
+                        VideoFilter filterInDB = videoFiltersRepository.findByTitleAndType(breakdown_type_title.trim(), Constants.FILTER_TYPE_BREAKDONW_TYPE);
+                        if(filterInDB != null){
+                            videoUpdate.setBreakdownType(String.valueOf(filterInDB.getId()));
+                        }else {
+                            VideoFilter newFilter = new VideoFilter();
+                            newFilter.setTitle(breakdown_type_title);
+                            newFilter.setType(Constants.FILTER_TYPE_BREAKDONW_TYPE);
+                            videoFiltersRepository.save(newFilter);
+                            videoUpdate.setBreakdownType(String.valueOf(newFilter.getId()));
+                        }
+                    }
+
+                    if(car_type_id.trim().length() > 0){
+                        videoUpdate.setCarType(car_type_id.trim());
+                    }
+
+                    if(car_model_id.trim().length() > 0){
+                        videoUpdate.setCarModel(car_model_id.trim());
+                    }
+
                     videoRepository.save(videoUpdate);
                     return videoRepository.findById(id);
                 }else {
@@ -198,12 +298,18 @@ public class VideoController {
 
     //Get all filters
     @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public MappingJacksonValue getFilters(@RequestParam(defaultValue = "") String title) {
-        SimpleBeanPropertyFilter filterJson = SimpleBeanPropertyFilter.filterOutAllExcept("id", "title", "type", "parent");
+    public MappingJacksonValue getFilters(@RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "") String type) {
+        SimpleBeanPropertyFilter filterJson = SimpleBeanPropertyFilter.filterOutAllExcept("id", "title", "type");
         FilterProvider filtersForJson = new SimpleFilterProvider().addFilter("SomeBeanFilter", filterJson);
         MappingJacksonValue mapping;
 
-        Iterable<VideoFilter> filtersAll = videoFiltersRepository.findAll();
+        Iterable<VideoFilter> filtersAll;
+        if(type.trim().length() > 0){
+            filtersAll = videoFiltersRepository.findAllByType(type);
+        }else {
+            filtersAll = videoFiltersRepository.findAll();
+        }
+
         if(title.trim().length() > 0){
             List<VideoFilter> findedFilters = new ArrayList<>();
             for(VideoFilter filterItem : filtersAll){
@@ -213,7 +319,7 @@ public class VideoController {
             }
             mapping = new MappingJacksonValue(findedFilters);
         }else {
-            mapping = new MappingJacksonValue(videoFiltersRepository.findAll());
+            mapping = new MappingJacksonValue(filtersAll);
         }
 
         mapping.setFilters(filtersForJson);
@@ -226,7 +332,7 @@ public class VideoController {
     @RequestMapping(value = "/filters", method = RequestMethod.POST)
     public MappingJacksonValue addFilter(@RequestHeader("Authorization") String token, @RequestParam int person_id,
                          @RequestParam String title, @RequestParam String type,
-                         @RequestParam(defaultValue = "0") int parent) {
+                         @RequestParam(defaultValue = "0") String value_id, @RequestParam(defaultValue = "0") String value_parent) {
         //CHECK ADMINISTRATION PERMISSION
         UserPermission userPermission = userPermissionRepository.findByUserId(person_id);
         if(userPermission != null && userPermission.getType().equals(Constants.ADMINISTRATION_PERMISSION_KEY)){
@@ -235,8 +341,11 @@ public class VideoController {
                 if(title.trim().length() > 0 && type.trim().length() > 0){
                     filter.setTitle(title);
                     filter.setType(type);
-                    if(parent != 0){
-                        filter.setParent(parent);
+                    if(!value_parent.equals("0")){
+                        filter.setValue_parent(value_parent);
+                    }
+                    if(!value_id.equals("0")){
+                        filter.setValueId(value_id);
                     }
                     videoFiltersRepository.save(filter);
                     return getOneFilter(filter.getId());
@@ -251,7 +360,7 @@ public class VideoController {
         }
     }
 
-    //GET CAR TYPE FILTERS
+/*    //GET CAR TYPE FILTERS
     @RequestMapping(value = "/filters/carType", method = RequestMethod.GET)
     public MappingJacksonValue getCarTypeFilters() {
         Iterable<VideoFilter> filters = videoFiltersRepository.findAllByType("car_type");
@@ -261,10 +370,10 @@ public class VideoController {
                 VideoFilterLevelTop globalItemFilter = new VideoFilterLevelTop();
                 globalItemFilter.setId(filter.getId());
                 globalItemFilter.setTitle(filter.getTitle());
-                List<VideoFilter> clildFilters = videoFiltersRepository.findAllByTypeAndParent("car_model", filter.getId());
-                if(clildFilters != null){
-                    globalItemFilter.setItems(clildFilters);
-                }
+//                List<VideoFilter> clildFilters = videoFiltersRepository.findAllByTypeAndParent("car_model", filter.getId());
+ //               if(clildFilters != null){
+//                    globalItemFilter.setItems(clildFilters);
+ //               }
                 globalFilters.add(globalItemFilter);
             }
         }
@@ -289,13 +398,13 @@ public class VideoController {
         return mapping;
         //return videoFiltersRepository.findAllByType("break_type");
     }
-
+*/
     //GET ONE FILTER
     @RequestMapping(value = "/filters/{id}", method = RequestMethod.GET)
     public MappingJacksonValue getOneFilter(@PathVariable(value = "id") int id) {
         if(videoFiltersRepository.findById(id) != null){
             // Вывод в Json только id and title
-            SimpleBeanPropertyFilter filterJson = SimpleBeanPropertyFilter.filterOutAllExcept("id", "title", "type", "parent");
+            SimpleBeanPropertyFilter filterJson = SimpleBeanPropertyFilter.filterOutAllExcept("id", "title", "type");
             FilterProvider filtersForJson = new SimpleFilterProvider().addFilter("SomeBeanFilter", filterJson);
             MappingJacksonValue mapping = new MappingJacksonValue(videoFiltersRepository.findById(id));
             mapping.setFilters(filtersForJson);
@@ -326,7 +435,7 @@ public class VideoController {
                         videoFilter.setType(type);
                     }
                     if(parent != 999999  && parent != videoFilter.getId()){  //ВТОРОЕ УСЛОВИЕ - ЧТО БЫ НЕ СТАВИТЬ РОДИТЕЛЕМ САМОГО СЕБЯ
-                        videoFilter.setParent(parent);
+//                         videoFilter.setParent(parent);
                     }
                     videoFiltersRepository.save(videoFilter);
                     return getOneFilter(id);

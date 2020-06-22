@@ -25,6 +25,12 @@ public class AgronomyMachineryModel {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "independence")
+    private boolean independence;
+
+    @Column(name = "applying_id")
+    private int applyingId;
+
     public int getId() {
         return id;
     }
@@ -63,5 +69,21 @@ public class AgronomyMachineryModel {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isIndependence() {
+        return independence;
+    }
+
+    public void setIndependence(boolean independence) {
+        this.independence = independence;
+    }
+
+    public int getApplyingId() {
+        return applyingId;
+    }
+
+    public void setApplyingId(int applyingId) {
+        this.applyingId = applyingId;
     }
 }

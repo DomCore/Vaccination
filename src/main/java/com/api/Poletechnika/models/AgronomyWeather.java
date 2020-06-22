@@ -20,6 +20,8 @@ public class AgronomyWeather {
     @Column(name = "title")
     private String title;
 
+    @Column(name = "value")
+    private String value;
 
     public String getTitle() {
         return title;
@@ -44,5 +46,13 @@ public class AgronomyWeather {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 }

@@ -12,12 +12,18 @@ public class UserCalculationData {
     @GeneratedValue (strategy = GenerationType.AUTO)
     private int id;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "title")
     private String title;
 
 
     @Column(name = "value")
     private String value;
+
+    @Column(name = "metrics")
+    private String metrics;
 
     @JsonIgnore
     @Column(name = "id_calculation")
@@ -67,6 +73,22 @@ public class UserCalculationData {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(String metrics) {
+        this.metrics = metrics;
     }
 }
 

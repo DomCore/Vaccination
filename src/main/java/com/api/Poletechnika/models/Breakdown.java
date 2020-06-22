@@ -24,6 +24,9 @@ public class Breakdown {
     @Column(name = "title")
     private String title;
 
+    @Column(name = "hashtags")
+    private String hashtags;
+
     @Column(name = "image")
     private String image;
 
@@ -39,8 +42,14 @@ public class Breakdown {
     @Transient
     private List<Video> videos = null;
 
-    @Column(name = "filters")
-    private String filters;
+    @Column(name = "breakdown_type")
+    private String breakdownType;
+
+    @Column(name = "car_type")
+    private String carType;
+
+    @Column(name = "car_model")
+    private String carModel;
 
     public int getId() {
         return id;
@@ -115,11 +124,36 @@ public class Breakdown {
         this.videos = videos;
     }
 
-    public String getFilters() {
-        return filters;
+
+    public String getBreakdownType() {
+        return breakdownType;
     }
 
-    public void setFilters(String filters) {
-        this.filters = filters;
+    public void setBreakdownType(String breakdownType) {
+        this.breakdownType = breakdownType;
+    }
+
+    public String getCarType() {
+        return carType;
+    }
+
+    public void setCarType(String carType) {
+        this.carType = carType;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
+    }
+
+    public String getHashtags() {
+        return hashtags;
+    }
+
+    public void setHashtags(String hashtags) {
+        this.hashtags = hashtags;
     }
 }

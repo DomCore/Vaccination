@@ -12,56 +12,37 @@ public class AesEncriptionUtil {
 
 
     private static final String globalKey = "Pole19tech123456";
-    private static SecretKeySpec secretKey;
-    private static byte[] key;
 
-    private static void setKey()
-    {
-        MessageDigest sha = null;
+    public static String encrypt(String input) {
+        byte[] crypted = null;
         try {
-            key = globalKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-1");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16);
-            secretKey = new SecretKeySpec(key, "AES");
-        }
-        catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static String encrypt(String strToEncrypt)
-    {
-        try
-        {
-            setKey();
+            SecretKeySpec skey = new SecretKeySpec(globalKey.getBytes(), "AES");
+
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
+            cipher.init(Cipher.ENCRYPT_MODE, skey);
+            crypted = cipher.doFinal(input.getBytes());
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
-        catch (Exception e)
-        {
-            System.out.println("Error while encrypting: " + e.toString());
-        }
-        return null;
+        java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+
+        return new String(encoder.encodeToString(crypted));
     }
 
-    public static String decrypt(String strToDecrypt)
-    {
-        try
-        {
-            setKey();
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
+    public static String decrypt(String input) {
+        byte[] output = null;
+        try {
+            java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
+            SecretKeySpec skey = new SecretKeySpec(globalKey.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, skey);
+            output = cipher.doFinal(decoder.decode(input));
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
-        catch (Exception e)
-        {
-            System.out.println("Error while decrypting: " + e.toString());
-        }
-        return null;
+        return new String(output);
     }
+
+
 }

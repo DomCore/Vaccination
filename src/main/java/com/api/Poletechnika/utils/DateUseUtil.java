@@ -3,6 +3,7 @@ package com.api.Poletechnika.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 
@@ -14,6 +15,11 @@ public class DateUseUtil {
         return dtf.format(localDate);
     }
 
+    public String getCurrentDateTime(){
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime localDateTime = LocalDateTime.now();
+        return dtf.format(localDateTime);
+    }
 
     //FOR CALCULATE DATE, LIKE LICENSE TERM
     public String changeCurrentDate(String startDate, int days){

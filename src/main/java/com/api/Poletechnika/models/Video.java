@@ -25,12 +25,17 @@ public class Video {
     @Column(name = "hashtags")
     private String hashtags;
 
-    @Column(name = "filters")
-    private String filters;
-
     @Column(name = "breakdown_id")
     private int breakdownId;
 
+    @Column(name = "breakdown_type")
+    private String breakdownType;
+
+    @Column(name = "car_type")
+    private String carType;
+
+    @Column(name = "car_model")
+    private String carModel;
 
     public String getTitle() {
         return title;
@@ -72,14 +77,6 @@ public class Video {
         this.hashtags = hashtags;
     }
 
-    public String getFilters() {
-        return filters;
-    }
-
-    public void setFilters(String filters) {
-        this.filters = filters;
-    }
-
     public int getId() {
         return id;
     }
@@ -94,5 +91,31 @@ public class Video {
 
     public void setBreakdownId(int breakdownId) {
         this.breakdownId = breakdownId;
+    }
+
+
+    public String getBreakdownType() {
+        return breakdownType;
+    }
+
+    public void setBreakdownType(String breakdownType) {
+        this.breakdownType = breakdownType;
+    }
+
+
+    public String getCarType() {
+        return carType;
+    }
+
+    public void setCarType(String carType) {
+        this.carType = carType;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
     }
 }

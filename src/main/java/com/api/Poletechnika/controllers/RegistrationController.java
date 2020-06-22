@@ -44,10 +44,10 @@ public class RegistrationController {
                                    @RequestParam String website, @RequestParam String registry, @RequestParam String company,
                                       @RequestParam String policy) {
 
-        if(policy.equals("true")){
+        if(policy.equals("true") || policy.equals("1")){
             //CHECK IF NUMBER USED ALREADY
             if(userRepository.findUserByPhone(phone) == null || userRepository.findUserByPhone(phone) != null &&
-                    userRepository.findUserByPhone(phone).getRegistration_status().equals(Constants.REGISTRATION_STATUS_WAIT)){
+                    userRepository.findUserByPhone(phone).getRegistrationStatus().equals(Constants.REGISTRATION_STATUS_WAIT)){
                 User user;
 
                 if(userRepository.findUserByPhone(phone) == null){
@@ -64,7 +64,7 @@ public class RegistrationController {
                 user.setCompany(company);
                 user.setLicense(Constants.LICENSE_STATUS_FREE);
                 //set registration status
-                user.setRegistration_status(Constants.REGISTRATION_STATUS_WAIT);
+                user.setRegistrationStatus(Constants.REGISTRATION_STATUS_WAIT);
                 //set regitration date
                 user.setRegistration_date(new DateUseUtil().getCurrentDate());
 
@@ -92,9 +92,9 @@ public class RegistrationController {
        User usersByPhone = userRepository.findUserByPhone(phone);
 
        if(usersByPhone != null){
-           if(usersByPhone.getPass().equals(AesEncriptionUtil.encrypt(pass))){
-               if(usersByPhone.getRegistration_status().equals(Constants.REGISTRATION_STATUS_WAIT)){
-                    usersByPhone.setRegistration_status(Constants.REGISTRATION_STATUS_COMPLETE);
+           if(usersByPhone.getPass().equals(pass)){
+               if(usersByPhone.getRegistrationStatus().equals(Constants.REGISTRATION_STATUS_WAIT)){
+                    usersByPhone.setRegistrationStatus(Constants.REGISTRATION_STATUS_COMPLETE);
                }
 
                userSignInData.setUser_id(String.valueOf(usersByPhone.getId()));
@@ -104,6 +104,7 @@ public class RegistrationController {
                    token = generateToken();
                }
                userSignInData.setAuth_token(token);
+               userSignInData.setUser_license(usersByPhone.getLicense());
                //SAVE TOKEN IN DB
                usersByPhone.setToken(token);
                usersByPhone.setToken_date(new DateUseUtil().getCurrentDate());
@@ -144,9 +145,7 @@ public class RegistrationController {
 
 // WAY HAVE TWO VARIABLES: phone / mail
 
-        User userByPhone = userRepository.findUserByPhone(phone);
-
-        if(userByPhone!= null){
+        if(userRepository.findUserByPhone(phone)!= null){
             switch (way){
                 case "phone":
 //ОТПРАВЛЯЕМ ЗАПРОС С ПАРОЛЕМ НА НОМЕР ТЕЛЕФОНА
@@ -159,7 +158,7 @@ public class RegistrationController {
                     return "SEND ON PHONE";
             }
         }else {
-            return "USER NOT FOUND";
+            throw new NotFoundException(Constants.ERROR_DATA_NOT_FOUND);
         }
     }
 

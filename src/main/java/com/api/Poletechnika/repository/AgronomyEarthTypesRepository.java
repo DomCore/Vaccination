@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface AgronomyEarthTypesRepository extends CrudRepository<AgronomyEarthType, Integer> {
+
     AgronomyEarthType findById(int id);
 
     @Transactional

@@ -5,8 +5,11 @@ import com.api.Poletechnika.exceptions.NotFoundException;
 import com.api.Poletechnika.exceptions.WrongDataException;
 import com.api.Poletechnika.models.*;
 import com.api.Poletechnika.repository.*;
+import com.api.Poletechnika.services.PushNotificationsService;
 import com.api.Poletechnika.utils.Constants;
+import com.api.Poletechnika.utils.ConvertUtil;
 import com.api.Poletechnika.utils.DateUseUtil;
+import com.api.Poletechnika.utils.FilterUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,12 +43,34 @@ public class UserDataController {
     @Autowired
     UserCalculationDataRepository userCalculationDataRepository;
 
+
+    @Autowired
+    PushNotificationsService pushNotificationsService;
+    @Autowired
+    FirebaseNotificationClientRepository firebaseNotificationClientRepository;
+
+    //AGRONOMY
+    @Autowired
+    AgronomyMachineryRepository agronomyMachineryRepository;
+    @Autowired
+    AgronomyMachineryModelRepository agronomyMachineryModelRepository;
+    @Autowired
+    AgronomyMachineryApplyingRepository agronomyMachineryApplyingRepository;
+    @Autowired
+    AgronomyEquipmentRepository agronomyEquipmentRepository;
+    @Autowired
+    AgronomyEarthCategoriesRepository agronomyEarthCategoriesRepository;
+    @Autowired
+    AgronomyWeatherRepository agronomyWeatherRepository;
+
     //GET ALL USERS
     //REQUEST FOR ADMIN-PANEL
     //ADMINISTRATION PERMISSION
     @RequestMapping(value = "/clients", method = RequestMethod.GET)
     public Iterable<User> getUsers(@RequestHeader(value="Authorization", defaultValue="") String token,
                                    @RequestParam(defaultValue = "") String name,
+                                   @RequestParam(defaultValue = "") String registration_status,
+                                   @RequestParam(defaultValue = "") String license,
                                    @RequestParam(defaultValue = "0") int user_id) {
 
         if(token.trim().length() > 0){
@@ -62,8 +87,26 @@ public class UserDataController {
                         }
                         return idFiltredUser;
                     }else {
+                        Iterable<User> usersAll = userRepository.findAll();
+
+
+                        if(registration_status.trim().length() > 0){
+                            if(license.trim().length() > 0){
+                                usersAll = userRepository.findAllByRegistrationStatusAndLicense(registration_status, license);
+                            }else {
+                                usersAll = userRepository.findAllByRegistrationStatus(registration_status);
+                            }
+                        }else {
+                            if(license.trim().length() > 0){
+                                usersAll = userRepository.findAllByLicense(license);
+                            }else {
+                                usersAll = userRepository.findAll();
+                            }
+                        }
+
+
+
                         if(name.trim().length() > 0){
-                            Iterable<User> usersAll = userRepository.findAll();
                             List<User> findedUsers = new ArrayList<>();
                             for(User userItem : usersAll){
                                 if(searchName(userItem.getName(), name)){   //userItem.getName().equals(name)
@@ -72,7 +115,7 @@ public class UserDataController {
                             }
                             return findedUsers;
                         }else {
-                            return userRepository.findAll();
+                            return usersAll;
                         }
                     }
                 }else {
@@ -136,7 +179,7 @@ public class UserDataController {
                             user.setPass(pass);
                         }
                         if(registration_status.trim().length() > 0){
-                            user.setRegistration_status(registration_status);
+                            user.setRegistrationStatus(registration_status);
                         }
                         if(registration_date.trim().length() > 0){
                             user.setRegistration_date(registration_date);
@@ -253,14 +296,37 @@ public class UserDataController {
     //CALCULATIONS
     //GET USER CALCULATIONS
     @RequestMapping(value = "/clients/{id}/calculations", method = RequestMethod.GET)
-    public Iterable<UserCalculation> getUserCalculations(@RequestHeader("Authorization") String token, @PathVariable(value = "id") int user_id) {
+    public Iterable<UserCalculation> getUserCalculations(@RequestHeader("Authorization") String token, @PathVariable(value = "id") int user_id,
+                                                         @RequestParam(defaultValue = "") String data) {
         User user = userRepository.findById(user_id);
         if(user != null){
             if(user.getToken() != null && token.trim().length() > 0 &&  user.getToken().equals(token)){
-            return userCalculationRepository.findAllByUserId(user_id);
+
+                Iterable<UserCalculation> allCalculations = userCalculationRepository.findAllByUserId(user_id);
+
+                //Check like code
+                if(data.trim().length() > 0){
+                    Iterator<UserCalculation> it = allCalculations.iterator();
+                    while (it.hasNext()) {
+                        UserCalculation userCalculation = it.next();
+                        String allInfo = userCalculation.getNumber() + " " + userCalculation.getTitle() + " " +
+                                userCalculation.getDescription() + " " + userCalculation.getDate();
+                        if (!new FilterUtil().searchName(allInfo, data)) {
+                            it.remove();
+                        }
+                    }
+                }
+
+                Collections.reverse((List) allCalculations);
+                return allCalculations;
+
             }else {
                 throw new AccessException(Constants.ERROR_WRONG_AUTH_TOKEN);
             }
+
+
+
+
         }else {
             throw new NotFoundException(Constants.ERROR_DATA_NOT_FOUND);
         }
@@ -273,15 +339,31 @@ public class UserDataController {
         User user = userRepository.findById(user_id);
         if(user != null){
             if(user.getToken() != null && token.trim().length() > 0 &&  user.getToken().equals(token)){
-
+                //Create decrription
                 String description = "";
                 if(calculationData.getInput_data() != null && calculationData.getInput_data().size() > 0){
-                    int maxI = calculationData.getInput_data().size() >= 3 ? 3 : calculationData.getInput_data().size();
-                    for(int i = 0; i < maxI; i++){
-                        description += calculationData.getInput_data().get(i).getValue() + "   ";
+                    //int maxI = calculationData.getInput_data().size() >= 3 ? 3 : calculationData.getInput_data().size();
+                    String work_area = null;
+                    String work_time = null;
+                    for(int i = 0; i < calculationData.getInput_data().size(); i++){
+                        if(calculationData.getInput_data().get(i).getName().equals(Constants.CALCULATION_INPUT_PARAM_WORK_AREA_KEY)){
+                            double workAreaDouble = Double.parseDouble(calculationData.getInput_data().get(i).getValue());
+                            if(workAreaDouble >= 1){
+                                work_area = Math.round(workAreaDouble) + " " + calculationData.getInput_data().get(i).getMetrics();
+                            }else {
+                                work_area = calculationData.getInput_data().get(i).getValue() + " " + calculationData.getInput_data().get(i).getMetrics();
+                            }
+                        }
+                    }
+                    for(int i = 0; i < calculationData.getOutput_data().size(); i++){
+                        if(calculationData.getOutput_data().get(i).getName().equals(Constants.CALCULATION_OUTPUT_TIME_REQUIRED_KEY)) {
+                            work_time = calculationData.getOutput_data().get(i).getValue() + " " + calculationData.getOutput_data().get(i).getMetrics();
+                        }
+                    }
+                    if(work_area != null && work_time != null){
+                        description += work_area + " " + work_time;
                     }
                 }
-
 
                 UserCalculation calculation = new UserCalculation();
                 calculation.setTitle(calculationData.getTitle());
@@ -289,18 +371,18 @@ public class UserDataController {
                 calculation.setNumber(userCalculationRepository.findAllByUserId(user_id) != null ?
                         userCalculationRepository.findAllByUserId(user_id).size()+1 : 1);
                 calculation.setDescription(description.trim());
-
                 calculation.setDate(new DateUseUtil().getCurrentDate());
 
-                if(calculationData.getArea() != null && calculationData.getArea().size() > 0){
-                    String arrayToJson = null;
+                if(calculationData.getArea() != null && calculationData.getArea().length() > 0){
+                    /*String arrayToJson = null;
                     ObjectMapper mapper = new ObjectMapper();
                     try {
                         arrayToJson = mapper.writeValueAsString(calculationData.getArea());
                         calculation.setArea(arrayToJson);
                     } catch (Exception ex) {
                         calculation.setArea("");
-                    }
+                    }*/
+                    calculation.setArea(calculationData.getArea());
                 }else {
                     calculation.setArea("");
                 }
@@ -308,13 +390,15 @@ public class UserDataController {
 
                 //set input-output data
                 UserCalculationData userCalculationData;
-                if(calculationData.getInput_data() != null && calculationData.getInput_data().size() > 0){
+                 if(calculationData.getInput_data() != null && calculationData.getInput_data().size() > 0){
                     for (int i = 0; i < calculationData.getInput_data().size(); i++){
                         userCalculationData = new UserCalculationData();
                         userCalculationData.setIdCalculation(calculation.getId());
                         userCalculationData.setType("input");
+                        userCalculationData.setName(calculationData.getInput_data().get(i).getName());
                         userCalculationData.setTitle(calculationData.getInput_data().get(i).getTitle());
                         userCalculationData.setValue(calculationData.getInput_data().get(i).getValue());
+                        userCalculationData.setMetrics(calculationData.getInput_data().get(i).getMetrics());
                         userCalculationDataRepository.save(userCalculationData);
                     }
                 }
@@ -323,12 +407,13 @@ public class UserDataController {
                         userCalculationData = new UserCalculationData();
                         userCalculationData.setIdCalculation(calculation.getId());
                         userCalculationData.setType("output");
+                        userCalculationData.setName(calculationData.getOutput_data().get(i).getName());
                         userCalculationData.setTitle(calculationData.getOutput_data().get(i).getTitle());
                         userCalculationData.setValue(calculationData.getOutput_data().get(i).getValue());
+                        userCalculationData.setMetrics(calculationData.getOutput_data().get(i).getMetrics());
                         userCalculationDataRepository.save(userCalculationData);
                     }
                 }
-
                 return getUserCalculationData(token, user_id, calculation.getId());
             }else {
                 throw new AccessException(Constants.ERROR_WRONG_AUTH_TOKEN);
@@ -350,25 +435,63 @@ public class UserDataController {
 
                 List<UserCalculationData> inputData = userCalculationDataRepository.findAllByIdCalculationAndType(calculation_id, "input");
 
+                //Parse data for user (replace id to title)
+
+                String newValue = "";
+                for(UserCalculationData dataItem : inputData){
+                    switch (dataItem.getName()){
+
+                        case Constants.CALCULATION_INPUT_PARAM_CAR_TYPE_KEY:
+                            newValue = agronomyMachineryRepository.findById(dataItem.getValue()).getTitle();
+                            dataItem.setValue(newValue);
+                            break;
+
+                        case Constants.CALCULATION_INPUT_PARAM_CAR_MODEL_KEY:
+                            newValue = agronomyMachineryModelRepository.findById(Integer.parseInt(dataItem.getValue())).getTitle();
+                            dataItem.setValue(newValue);
+                            break;
+
+                        case Constants.CALCULATION_INPUT_PARAM_EQUIPMENT_MODEL_KEY:
+                            if(dataItem.getValue().trim().length() > 0){
+                                newValue = agronomyEquipmentRepository.findById(Integer.parseInt(dataItem.getValue())).getTitle();
+                            }else {
+                                newValue = "Не використовувалось";
+                            }
+                            dataItem.setValue(newValue);
+                            break;
+
+                        case Constants.CALCULATION_INPUT_PARAM_APPLY_KEY:
+                            newValue = agronomyMachineryApplyingRepository.findByName(dataItem.getValue()).getTitle();
+                            dataItem.setValue(newValue);
+                            break;
+
+                        case Constants.CALCULATION_INPUT_PARAM_EARTH_TYPE_KEY:
+                            newValue = agronomyEarthCategoriesRepository.findByName(dataItem.getValue()).getTitle();
+                            dataItem.setValue(newValue);
+                            break;
+
+                        case Constants.CALCULATION_INPUT_PARAM_WEATHER_KEY:
+                            newValue = agronomyWeatherRepository.findById(dataItem.getValue()).getTitle();
+                            dataItem.setValue(newValue);
+                            break;
+                    }
+                }
+
                 List<UserCalculationData> outputData = userCalculationDataRepository.findAllByIdCalculationAndType(calculation_id, "output");
 
                 if(calculation != null){
 
                     UserCalculationAllData userCalculationAllData = new UserCalculationAllData();
-
                     userCalculationAllData.setId(calculation.getId());
                     userCalculationAllData.setDate(calculation.getDate());
                     userCalculationAllData.setDescription(calculation.getDescription());
                     userCalculationAllData.setTitle(calculation.getTitle());
                     userCalculationAllData.setNumber(calculation.getNumber());
                     userCalculationAllData.setUserId(calculation.getUserId());
-
                     userCalculationAllData.setInput_data(inputData);
                     userCalculationAllData.setOutput_data(outputData);
-
-
                     //GET AREA
-                    JSONArray jsonArray = null;
+                    /*JSONArray jsonArray = null;
                     ObjectMapper mapper = new ObjectMapper();
                     List<CalculationAreaItem> areaItems = new ArrayList<>();
                     CalculationAreaItem areaItem = null;
@@ -385,13 +508,12 @@ public class UserDataController {
                                 }
                             }
                         } catch (IOException e) {
-                            throw new WrongDataException(Constants.ERROR_WRONG_DATA);
+                            //throw new WrongDataException(Constants.ERROR_WRONG_DATA);
                         }
                     } catch (JSONException e) {
-                        throw new WrongDataException(Constants.ERROR_WRONG_DATA);
-                    }
-
-                    userCalculationAllData.setArea(areaItems);
+                        //throw new WrongDataException(Constants.ERROR_WRONG_DATA);
+                    }*/
+                    userCalculationAllData.setArea(calculation.getArea());
                     return userCalculationAllData;
                 }else {
                     throw new NotFoundException(Constants.ERROR_DATA_NOT_FOUND);
@@ -554,6 +676,16 @@ public class UserDataController {
         User user = userRepository.findById(user_id);
         if(user != null){
             if(user.getToken() != null && token.trim().length() > 0 && user.getToken().equals(token)){
+
+                List<LicenseRequest> licenseRequests = licenseRequestsRepository.findAllByUserId(user_id);
+
+                for(LicenseRequest request : licenseRequests){
+                    if(request.getStatus() == 0){
+                        throw new WrongDataException(Constants.ERROR_REQUEST_IN_PROCESSING);
+                    }
+                }
+
+
                 LicenseRequest licenseRequest = new LicenseRequest();
                 licenseRequest.setMail(email);
                 licenseRequest.setUserId(user_id);
@@ -588,6 +720,16 @@ public class UserDataController {
     public void buyLicenseCard(@PathVariable(value = "id") int user_id,
                                    @RequestParam String data, @RequestParam String signature) { //UserLicenseData
 //проработать процес взаэмодії з лікпей
+// после успешной оплаты запускать запрос уведомления:   (протестировать уведомление)
+        /*List<FirebaseNotificationClient> clientIds = (List<FirebaseNotificationClient>) firebaseNotificationClientRepository.findAllByUserId(user_id);
+        if(clientIds != null && clientIds.size() > 0){
+            try {
+                pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clientIds), Constants.NOTIFICATION_TITLE_LICENSE_END_TITLE,
+                        Constants.NOTIFICATION_TITLE_LICENSE_BUY, Constants.NOTIFICATION_TYPE_PROFILE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
     }
 
 

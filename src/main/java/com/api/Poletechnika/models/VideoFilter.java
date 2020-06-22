@@ -20,8 +20,13 @@ public class VideoFilter {
     @Column(name = "type")
     private String type;
 
-    @Column(name = "parent")
-    private int parent;
+    @JsonIgnore
+    @Column(name = "value_id")
+    private String valueId;
+
+    @JsonIgnore
+    @Column(name = "value_parent")
+    private String value_parent;
 
 
     public int getId() {
@@ -49,11 +54,19 @@ public class VideoFilter {
     }
 
 
-    public int getParent() {
-        return parent;
+    public String getValueId() {
+        return valueId;
     }
 
-    public void setParent(int parent) {
-        this.parent = parent;
+    public void setValueId(String valueId) {
+        this.valueId = valueId;
+    }
+
+    public String getValue_parent() {
+        return value_parent;
+    }
+
+    public void setValue_parent(String value_parent) {
+        this.value_parent = value_parent;
     }
 }

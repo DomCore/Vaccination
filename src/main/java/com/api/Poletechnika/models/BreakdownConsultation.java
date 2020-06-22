@@ -1,6 +1,12 @@
 package com.api.Poletechnika.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Entity
 @Table(name = "breakdowns_consultations")
@@ -23,6 +29,10 @@ public class BreakdownConsultation {
     @Column(name = "date")
     private String date;
 
+    @JsonProperty("is_new")
+    @Column(name = "is_new")
+    private int isNew;
+
 
     public int getId() {
         return id;
@@ -41,7 +51,21 @@ public class BreakdownConsultation {
     }
 
     public String getDate() {
-        return date;
+        DateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+        Date dateF = null;
+        try {
+            dateF = inputFormat.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if(dateF != null){
+            DateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            return outputFormat.format(dateF);
+        }else {
+            return date;
+        }
+
     }
 
     public void setDate(String date) {
@@ -62,5 +86,14 @@ public class BreakdownConsultation {
 
     public void setBreakdownId(int breakdownId) {
         this.breakdownId = breakdownId;
+    }
+
+
+    public int getIsNew() {
+        return isNew;
+    }
+
+    public void setIsNew(int isNew) {
+        this.isNew = isNew;
     }
 }

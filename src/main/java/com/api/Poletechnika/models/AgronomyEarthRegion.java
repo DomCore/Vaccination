@@ -1,6 +1,7 @@
 package com.api.Poletechnika.models;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "agronomy_earth_regions")
@@ -12,7 +13,6 @@ public class AgronomyEarthRegion {
 
     @Column(name = "title")
     private String title;
-
 
     public int getId() {
         return id;
@@ -29,4 +29,5 @@ public class AgronomyEarthRegion {
     public void setTitle(String title) {
         this.title = title;
     }
+
 }

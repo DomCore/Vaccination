@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "agronomy_machinery_characteristics")
-public class AgronomyMachineryModelCharacteristic {
+@Table(name = "equipment_characteristics_general")
+public class EquipmentCharacteristicGeneral {
 
     @Id
     @GeneratedValue (strategy = GenerationType.AUTO)
     private int id;
+
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "title")
     private String title;
@@ -18,9 +21,12 @@ public class AgronomyMachineryModelCharacteristic {
     @Column(name = "value")
     private String value;
 
-    @Column(name = "id_machinery")
+    @Column(name = "metrics")
+    private String metrics;
+
+    @Column(name = "id_equipment")
     @JsonIgnore
-    private int idMachinery;
+    private int idEquipment;
 
 
     public int getId() {
@@ -48,11 +54,27 @@ public class AgronomyMachineryModelCharacteristic {
     }
 
 
-    public int getIdMachinery() {
-        return idMachinery;
+    public String getName() {
+        return name;
     }
 
-    public void setIdMachinery(int idMachinery) {
-        this.idMachinery = idMachinery;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(String metrics) {
+        this.metrics = metrics;
+    }
+
+    public int getIdEquipment() {
+        return idEquipment;
+    }
+
+    public void setIdEquipment(int idEquipment) {
+        this.idEquipment = idEquipment;
     }
 }

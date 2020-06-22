@@ -4,16 +4,21 @@ package com.api.Poletechnika.controllers;
 import com.api.Poletechnika.exceptions.AccessException;
 import com.api.Poletechnika.exceptions.NotFoundException;
 import com.api.Poletechnika.exceptions.WrongDataException;
+import com.api.Poletechnika.models.FirebaseNotificationClient;
 import com.api.Poletechnika.models.LicenseRequest;
 import com.api.Poletechnika.models.User;
 import com.api.Poletechnika.models.UserPermission;
+import com.api.Poletechnika.repository.FirebaseNotificationClientRepository;
 import com.api.Poletechnika.repository.LicenseRequestsRepository;
 import com.api.Poletechnika.repository.UserPermissionRepository;
 import com.api.Poletechnika.repository.UserRepository;
+import com.api.Poletechnika.services.PushNotificationsService;
 import com.api.Poletechnika.utils.Constants;
+import com.api.Poletechnika.utils.ConvertUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +33,13 @@ public class LicenseRequestController {
     UserPermissionRepository userPermissionRepository;
     @Autowired
     UserRepository userRepository;
+
+
+    @Autowired
+    PushNotificationsService pushNotificationsService;
+    @Autowired
+    FirebaseNotificationClientRepository firebaseNotificationClientRepository;
+
 
     //GET LICENSE REQUESTS
     //REQUEST FOR ADMIN-PANEL
@@ -116,6 +128,16 @@ public class LicenseRequestController {
                             user.setLicense(Constants.LICENSE_STATUS_PAID);
                             user.setLicense_term(licenseRequest.getLicenseTerm());
                             userRepository.save(user);
+                            // после успешной оплаты запускать запрос уведомления:   (протестировать уведомление)
+                            List<FirebaseNotificationClient> clientIds = (List<FirebaseNotificationClient>) firebaseNotificationClientRepository.findAllByUserId(user.getId());
+                            if(clientIds != null && clientIds.size() > 0){
+                                try {
+                                    pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clientIds), Constants.NOTIFICATION_TITLE_LICENSE_END_TITLE,
+                                            Constants.NOTIFICATION_TITLE_LICENSE_BUY, Constants.NOTIFICATION_TYPE_PROFILE);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }else {
                             throw new WrongDataException(Constants.ERROR_WRONG_DATA + " - user id");
                         }

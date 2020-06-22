@@ -15,6 +15,14 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     User findById(int id);
     User findUserByPhone(String phone);
 
+    List<User> findAllByRegistrationStatus(String status);
+
+
+    List<User> findAllByRegistrationStatusAndLicense(String status, String licenseType);
+
+    List<User> findAllByLicense(String licenseType);
+
+
     User findUserByToken(String token);
 
     @Transactional

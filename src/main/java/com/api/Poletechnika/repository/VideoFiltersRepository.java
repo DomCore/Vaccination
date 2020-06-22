@@ -15,8 +15,12 @@ public interface VideoFiltersRepository extends CrudRepository<VideoFilter, Inte
 
     List<VideoFilter> findAllByType(String type);
 
+    VideoFilter findByTitleAndType(String title, String type);
+
+    VideoFilter findByValueIdAndType(String valueId, String type);
+
     //For subfilters
-    List<VideoFilter> findAllByTypeAndParent(String type, int parent);
+//    List<VideoFilter> findAllByTypeAndParent(String type, int parent);
 
     @Transactional
     void deleteById(int id);

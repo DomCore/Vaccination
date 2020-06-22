@@ -30,7 +30,7 @@ public class ClearWaitUsersService {
 
         Iterable<User> users = userRepository.findAll();
         for(User user : users){
-            if(user.getRegistration_status() != null && user.getRegistration_status().equals(Constants.REGISTRATION_STATUS_WAIT)){
+            if(user.getRegistrationStatus() != null && user.getRegistrationStatus().equals(Constants.REGISTRATION_STATUS_WAIT)){
 
                 try {
                     c.setTime(nowDate);

@@ -34,7 +34,7 @@ public class User {
     private String pass;
 
     @Column(name = "registration_status")
-    private String registration_status;
+    private String registrationStatus;
 
     @Column(name = "registration_date")
     private String registration_date;
@@ -105,14 +105,6 @@ public class User {
 
     public void setPass(String pass) {
         this.pass = pass;
-    }
-
-    public String getRegistration_status() {
-        return registration_status;
-    }
-
-    public void setRegistration_status(String registration_status) {
-        this.registration_status = registration_status;
     }
 
     public String getRegistration_date() {
@@ -186,5 +178,13 @@ public class User {
 
     public void setChange_code(String change_code) {
         this.change_code = change_code;
+    }
+
+    public String getRegistrationStatus() {
+        return registrationStatus;
+    }
+
+    public void setRegistrationStatus(String registrationStatus) {
+        this.registrationStatus = registrationStatus;
     }
 }
