@@ -142,6 +142,7 @@ public class LicenseRequestController {
                             throw new WrongDataException(Constants.ERROR_WRONG_DATA + " - user id");
                         }
                     }
+                    //
                     if(date.trim().length() > 0){
                         licenseRequest.setDate(date);
                     }
