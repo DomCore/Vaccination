@@ -143,6 +143,9 @@ public class LicenseRequestController {
                         }
                     }
                     //
+
+
+
                     if(date.trim().length() > 0){
                         licenseRequest.setDate(date);
                     }
