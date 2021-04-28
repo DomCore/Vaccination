@@ -14,7 +14,7 @@ import com.api.Poletechnika.repository.UserPermissionRepository;
 import com.api.Poletechnika.repository.UserRepository;
 import com.api.Poletechnika.services.PushNotificationsService;
 import com.api.Poletechnika.utils.Constants;
-import com.api.Poletechnika.utils.ConvertUtil;
+/*import com.api.Poletechnika.utils.ConvertUtil;*/
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -131,12 +131,12 @@ public class LicenseRequestController {
                             // после успешной оплаты запускать запрос уведомления:   (протестировать уведомление)
                             List<FirebaseNotificationClient> clientIds = (List<FirebaseNotificationClient>) firebaseNotificationClientRepository.findAllByUserId(user.getId());
                             if(clientIds != null && clientIds.size() > 0){
-                                try {
+  /*                              try {
                                     pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clientIds), Constants.NOTIFICATION_TITLE_LICENSE_END_TITLE,
                                             Constants.NOTIFICATION_TITLE_LICENSE_BUY, Constants.NOTIFICATION_TYPE_PROFILE);
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                }
+                                }*/
                             }
                         }else {
                             throw new WrongDataException(Constants.ERROR_WRONG_DATA + " - user id");

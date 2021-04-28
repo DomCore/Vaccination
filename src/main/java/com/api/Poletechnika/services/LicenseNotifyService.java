@@ -5,7 +5,7 @@ import com.api.Poletechnika.models.User;
 import com.api.Poletechnika.repository.FirebaseNotificationClientRepository;
 import com.api.Poletechnika.repository.UserRepository;
 import com.api.Poletechnika.utils.Constants;
-import com.api.Poletechnika.utils.ConvertUtil;
+/*import com.api.Poletechnika.utils.ConvertUtil;*/
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -95,15 +95,15 @@ public class LicenseNotifyService {
                                     messageBody = Constants.NOTIFICATION_TITLE_LICENSE_END;
                                     break;
                             }
-                            pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clientIds), Constants.NOTIFICATION_TITLE_LICENSE_END_TITLE,
-                                    messageBody, Constants.NOTIFICATION_TYPE_PROFILE);
+/*                            pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clientIds), Constants.NOTIFICATION_TITLE_LICENSE_END_TITLE,
+                                    messageBody, Constants.NOTIFICATION_TYPE_PROFILE);*/
                         }
                     }
                 }catch (ParseException e) {
                     //e.printStackTrace();
-                } catch (IOException e) {
+                } /*catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         }
     }

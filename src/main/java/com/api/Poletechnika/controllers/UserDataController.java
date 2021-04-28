@@ -7,7 +7,7 @@ import com.api.Poletechnika.models.*;
 import com.api.Poletechnika.repository.*;
 import com.api.Poletechnika.services.PushNotificationsService;
 import com.api.Poletechnika.utils.Constants;
-import com.api.Poletechnika.utils.ConvertUtil;
+/*import com.api.Poletechnika.utils.ConvertUtil;*/
 import com.api.Poletechnika.utils.DateUseUtil;
 import com.api.Poletechnika.utils.FilterUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;

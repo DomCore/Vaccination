@@ -5,7 +5,7 @@ import com.api.Poletechnika.models.FirebaseNotificationClient;
 import com.api.Poletechnika.repository.FirebaseNotificationClientRepository;
 import com.api.Poletechnika.services.PushNotificationsService;
 import com.api.Poletechnika.utils.Constants;
-import com.api.Poletechnika.utils.ConvertUtil;
+/*import com.api.Poletechnika.utils.ConvertUtil;*/
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,12 +128,13 @@ public class NotificationController {
             clients = firebaseNotificationClientRepository.findAllByUserId(user_id);
         }
 
-
+/*
         try {
             String pushNotification = pushNotificationsService.sendPushNotification(new ConvertUtil().convertListToArrayString(clients), title, body, type);
             return pushNotification;
         } catch (IOException e) {
             throw new WrongDataException(Constants.ERROR_WRONG_DATA);
-        }
+        }*/
+        return null;
     }
 }
